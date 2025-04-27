@@ -9,7 +9,7 @@ from util import *
 
 
 
-def load_mask(mask_path):
+def load_mask(mask_path, include_background):
     '''
     Load the mask from a .npy file and return it as a float32 array.
 
@@ -19,10 +19,13 @@ def load_mask(mask_path):
     Returns:        
     - mask (np.ndarray): Mask array of shape (H, W, 4) with values normalized to [0, 1].
     '''
-    mask = np.load(mask_path)  # (5, H, W), uint8
-    assert mask.shape == (4, 1024, 1024)
-    mask = mask.transpose(1, 2, 0)  # (H, W, 4) for augmentation
-    return mask.astype(np.float32)  # normalize to [0, 1]
+    mask = np.load(mask_path).astype(np.float32)   # (4, H, W)
+
+    if include_background:
+        background = 1 - mask.any(axis=0, keepdims=True)   # (1, H, W)
+        mask = np.concatenate([mask, background], axis=0)  # (5, H, W)
+
+    return mask.transpose(1, 2, 0)  
 
 
 def load_image(image_path):
@@ -80,20 +83,21 @@ class TrainingDataset(torch.utils.data.Dataset):
     - __len__(): Returns the number of samples in the dataset.
     - __getitem__(): Loads and returns the image and mask at the specified index after applying augmentations and normalization.
     '''
-    def __init__(self, data_root, sample_indices, std, mean, augmentations=None, band_indices=None):
+    def __init__(self, data_root, sample_indices, std, mean, augmentations=None, band_indices=None, include_background=False):
         self.image_paths = [f"{data_root}/train_images/train_{i}.tif" for i in sample_indices]
         self.mask_paths = [f"{data_root}/masks/train_{i}.npy" for i in sample_indices]
         self.augmentations = augmentations
         self.band_indices = band_indices
         self.std = std
         self.mean = mean
+        self.include_background = include_background
 
     def __len__(self):
         return len(self.image_paths)
     
     def __getitem__(self, idx):
         image = load_image(self.image_paths[idx])  # Load actual image
-        mask = load_mask(self.mask_paths[idx])  # Load actual mask
+        mask = load_mask(self.mask_paths[idx], include_background=self.include_background)  # Load actual mask
 
         # Apply augmentations if provided
         if self.augmentations:

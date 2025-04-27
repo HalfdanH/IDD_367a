@@ -1,7 +1,7 @@
 # Identifying Deforestation Drivers
 ## INF367 project
 
-Competition Description:
+### Competition Description:
 The competition is based on identifying deforestation drivers using image segmentation and IoU for the metric.
 The images are from the Sentinel-2 satelite dataset during the period: 2017/1/1 to 2024/6/1 and containing 12 bands: 'B1', 'B2', 'B3', 'B4', 'B5', 'B6', 'B7', 'B8', 'B8A', 'B9', 'B11', 'B12'.
 It has 4 classes of deforestation: Looging, mining, grassland shrubland and plantations.

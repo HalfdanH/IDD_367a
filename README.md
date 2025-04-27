@@ -18,7 +18,7 @@ So for each image the goal is to predict the outline of the deforestastion segme
 For implementing the encoder into the main pipeline, we define a class Encoder, then we train it in the autoencoder file, saving the weights, then adding it to a model we are going to train in the main pipeline as a before the original structure. The first thing we do is to
 
 **SatSynth implementation:**
-...
+For full details on the SatSynth implementation, look for the `README.md` file in the `SatSynth_impl` folder.
 
 
 Group Members:

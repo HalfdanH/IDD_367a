@@ -1,0 +1,7 @@
+data/
+maedata/
+.DS_Store
+.ipynb_checkpoints
+*.pth
+*.json
+

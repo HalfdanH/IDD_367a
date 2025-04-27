@@ -1,54 +1,43 @@
-###############################
-# Machine Learning Libraries: #
-###############################
-import torch
+## Machine Learning Libraries: 
 import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
-import pytorch_lightning as pl
-import segmentation_models_pytorch as smp
-from torchmetrics import F1Score 
-from torch.utils.data import DataLoader, TensorDataset
-from torchvision import transforms
-from torchvision.ops import box_convert
-from torchvision.transforms.functional import convert_image_dtype, to_pil_image
-from torchvision.utils import draw_bounding_boxes
-from torch.nn import CrossEntropyLoss
-from torch.profiler import profile, record_function, ProfilerActivity
 
-#################
-# Math imports: #
-#################
+## Math imports: 
 import numpy as np
 import matplotlib.pyplot as plt
-from math import sqrt
-import random
 
-
-########################################
-# Plotting / Image processing imports: #
-########################################
-import albumentations as albu
+## Plotting / Image processing imports: 
 import json
 import os
-import cv2
-from pathlib import Path
 import matplotlib.pyplot as plt
-from matplotlib import patches
-from matplotlib.patches import Rectangle
 import rasterio
-from rasterio.plot import show
-from tqdm import tqdm
 
 
 def open_tif_image(file_path):
-    """Open a specific tif image and return file and array"""
+    '''
+    Open a specific tif image and return file and array
+
+    Parameters:
+    - file_path (Str): Path to the tif image file
+
+    Returns:
+    - src_file (rasterio.io.DatasetReader): Rasterio dataset reader object
+    - src_array (numpy.ndarray): Array representation of the image
+    '''
     src_file  = rasterio.open(file_path)
     src_array = src_file.read()
     return src_file, src_array
 
 
 def analyze_tif_image(file_path):
+    '''
+    Analyze a tif image and print its properties
+
+    Parameters:
+    - file_path (Str): Path to the tif image file
+    
+    Calls:
+    - open_tif_image()
+    '''
     src_file, src_array = open_tif_image(file_path)
 
     print(f"Image shape (bands, height, width):\n - {src_array.shape}\n")
@@ -62,6 +51,15 @@ def analyze_tif_image(file_path):
 
 
 def visualize_bands(path):
+    '''
+    Visualize individual bands of a tif image
+
+    Parameters:
+    - path (Str): Path to the tif image file
+
+    Calls:
+    - open_tif_image()
+    '''
     _, src_array = open_tif_image(path)
     fig, axes = plt.subplots(3, 4, figsize=(15, 10))  # Adjust figsize for spacing
     fig.suptitle("Visualizing Individual Bands", fontsize=16, y=0.92)  # Main header
@@ -80,7 +78,16 @@ def visualize_bands(path):
 
 
 def calculate_overall_mean_std(image_dir):
+    '''
+    Calculate the overall mean and standard deviation of bands in a directory of tif images
 
+    Parameters:
+    - image_dir (Str): Directory containing tif images
+
+    Returns:
+    - overall_means (numpy.ndarray): Overall mean values for each band
+    - overall_stds (numpy.ndarray): Overall standard deviation values for each band
+    '''
     band_sums = None
     band_squared_sums = None
     num_pixels = None  
@@ -110,16 +117,53 @@ def calculate_overall_mean_std(image_dir):
 
 
 def open_json(file_path):
+    '''
+    Open a JSON file and return its contents
+    
+    Parameters:
+    - file_path (Str): Path to the JSON file
+
+    Returns:
+    - annotations (Dict): Parsed JSON data
+    '''
     with open(f"{file_path}") as f:
         annotations = json.load(f)
     return annotations
 
+
 def return_image_annotations(image_num, file_path):
+    '''
+    Return image annotations for a specific image number from a JSON file
+
+    Parameters:
+    - image_num (Int): Image number to retrieve annotations for
+    - file_path (Str): Path to the JSON file
+
+    Returns:
+    - annotations (Dict): Annotations for the specified image number
+    '''
+
     annotations = open_json(file_path)
     return annotations["images"][image_num]
 
 
 class MAEEncoder(nn.Module):
+    '''
+    pytorch nn.module class representing an MAEEncoder for encoding images using a
+    transformer-based architecture. 
+    
+    Parameters:
+    - img_size (Int): Size of the input image
+    - patch_size (int): Size of each patch 
+    - in_chans (int): Number of input channels
+    - embed_dim (int): Dimension of the embedding space 
+    - depth (int): Number of transformer encoder layers 
+    - num_heads (int): Number of attention heads in the transformer 
+    
+    Functions:
+    - __init__(): Initializes the MAEEncoder with the specified parameters.
+    - forward(): Defines the forward pass of the encoder, processing the input image.
+    '''
     def __init__(self, img_size=1024, patch_size=16, in_chans=9, embed_dim=768, depth=12, num_heads=12):
         super().__init__()
 

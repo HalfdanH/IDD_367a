@@ -1,5 +1,5 @@
-# Identifying Deforestation Drivers
-## INF367 project
+# INF367 project: Identifying Deforestation Drivers
+
 
 ### Competition Description:
 The competition is based on identifying deforestation drivers using image segmentation and IoU for the metric.
